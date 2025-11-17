@@ -1,0 +1,117 @@
+---
+title: "Explore the dataset"
+output: html_notebook
+---
+
+## The study
+
+This workshop will use CosMx Spatial Molecular Imager (SMI) data from the paper "Macrophage and neutrophil heterogeneity at single-cell spatial resolution in human inflammatory bowel disease" (Garrido-Trigo et al. 2023) - link: https://www.nature.com/articles/s41467-023-40156-6
+
+There were 9x colon tissue samples, one per slide. They used a 1k RNA panel panel. (5k, 6k and whole transcriptome available) 
+
+* 3x Healthy controls (HC)
+* 3x Crohn’s disease (CD)
+* 3x Ulcerative colitis (UC)
+
+For this workshop, we will work with a subsetted dataset;
+
+* Only the Healthy and Chrohn's disease samples - 6x samples total
+* Only a regional subset of each sample - First 4 'FOVs' (feilds of view - cosmx scans)
+
+
+
+
+
+
+## The Data object
+
+
+This is a 'SpatialFeatureExperiment' Object.
+
+
+This 'mini' dataset has 999 genes and 65601 cells. 
+
+```{r}
+sfe
+```
+
+
+
+It has the following metadata for each cell.
+
+```{r}
+DT::datatable(as.data.frame(head(colData(sfe), n=300)))
+```
+
+
+
+This was a '1k' panel, we have 999 targets.
+```{r}
+DT::datatable(as.data.frame(rowData(sfe)))
+```
+
+
+
+How many cells per sample? 
+
+```{r}
+table(sfe$tissue_sample)
+```
+
+This data is subsetted to only 4 'Feilds of View' (FOV). On the cosmx platform, these are multiple rectangular regions (feilds of view) that make up the run. Essentially we're looking at a corner of each sample.
+
+```{r}
+#NB: ColData is a DataFrame, not a data.frame, often need an explicit conversion
+colData(sfe) %>% as.data.frame() %>% select(group,tissue_sample, fov, fov_name) %>%
+  group_by(group,tissue_sample, fov, fov_name) %>% 
+  summarise(n_cells = n())
+```
+
+
+
+
+## The existing annotation
+
+
+We'll be using 5 broad celltypes. These are from the Garrido-Trigo et al's original paper. 
+
+```{r}
+plotUMAP(sfe, colour_by='celltype_subset', scattermore=1)
+```
+
+```{r}
+plotSpatialFeature(sfe.sample.HC,'celltype_subset', colGeometryName = "cellSeg") + 
+  theme(legend.title=element_blank()) +
+  ggtitle(sample)
+```
+
+But there are other levels of celltype annotation in this dataset.
+
+There is the very (very) detailed celltype_singleR2, usef for various analyses in the original paper;
+
+```{r}
+# Remove celltypes with less than 30 instances, purely for plotting.
+cell_counts <- table(sfe.sample.HC$celltype_SingleR2)
+sfe.sample.HC$filtered_celltype_singleR2 <- as.character(ifelse(cell_counts[as.character(sfe.sample.HC$celltype_SingleR2)] >= 30 , as.character(sfe.sample.HC$celltype_SingleR2), "Other"))
+
+plotSpatialFeature(sfe.sample.HC, 'filtered_celltype_singleR2', colGeometryName = "cellSeg") + 
+  theme(legend.title=element_blank()) +
+  ggtitle(sample)
+```
+
+
+
+And some clusters genrated purely on transcriptional similarity. These were generated during preprocessing (and havnen't been translated to celltypes), but might represent a nice level of classification if were were doing the analysis from scratch. 
+```{r}
+plotSpatialFeature(sfe.sample.HC, 'cluster_code', colGeometryName = "cellSeg") + 
+  theme(legend.title=element_blank()) +
+  ggtitle(sample)
+```
+
+
+Of course, we can plot any gene's expression (so long as its present on the 1k panel!)
+```{r}
+plotSpatialFeature(sfe.sample.HC, 'PIGR', colGeometryName = "cellSeg") + 
+  theme(legend.title=element_blank()) +
+  ggtitle(sample)
+```

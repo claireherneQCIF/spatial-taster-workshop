@@ -10,7 +10,7 @@ output: html_notebook
 _Are myeloid cells getting closer to the epithalia cells in chrones disease?_
 
 ```{r}
-library(spicyR)
+#library(spicyR)
 
 
 #epi => myeloid

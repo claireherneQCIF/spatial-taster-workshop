@@ -3,15 +3,38 @@ title: "Differential expression - celltypes"
 output: html_notebook
 ---
 
-See: https://swbioinf.github.io/spatialsnippets/e_DEPseudobulkSampleLevel_insitu_sfe.html
+
+**What is the difference between Crohns Disease and healthy samples; in terms of gene expression within each cell type?**
+
+
+This is essentially the same thing as a single cell experiment. For a review of approaches see; [Soneson & Robinson 2018](https://www.nature.com/articles/nmeth.4612)
+
+We're going to use a pseudobulk approach; summing up all cells within a group, and treating it more like a bulk RNAseq experiment. 
+
+For a more detailed walkthrough of this test, see (spatial sampler differential expression by celltype HowTo)[https://swbioinf.github.io/spatialsnippets/e_DEPseudobulkSampleLevel_insitu_sfe.html]
 
 
 ## Pool samples into pseudobulk
 
 
-Build pseudobulk (precomputed)
+We need to created a cell annotation for the pseudobulk grouping in our analysis. We can do this by concatenating the tissue sample ID with the celltype; calling this column pdb_sample here.
+
+Now use the PseudobulkExpression() function to sum up each gene’s gene expression across each pdb_sample.
+
+This will build a SummarisedExperiment object at the ‘sample+celltype’ level’. Which contains one entry per group, containing the sum of copies of the gene in all cells within the grouping.
+
+
+This can take a while to run - So load one that's already been preprocessed
+
+
+NB: We might consider applying an additional filter for number of minimum counts per cell here (particularly sice we don't need to maintain spatial information), but this data has already been filtered.
+
+
+
+
+
 ```{r eval=FALSE}
-# DO NOT RUN
+## DO NOT RUN ##
 sfe$pdb_sample <- paste0(sfe$tissue_sample, '_', sfe$celltype_subset)
 se.pdb <- aggregateAcrossCells(sfe, ids=sfe$pdb_sample,
                                BPPARAM = MulticoreParam(workers=4)  )
@@ -22,15 +45,29 @@ Load pseudobulk
 se.pdb <- readRDS(spe_pseudobulk_by_celltype_file)
 ```
 
+The counts per cell look like this. Many zeros.
+
+```{r}
+counts(sfe)[1:10,1:8]
+```
+
+But the counts per pseudobulk sample look like this:
+```{r}
+counts(se.pdb)[1:10,1:8]
+```
 
 ## Filter to a minimum num cells per pool
 
-How many cell per pool?
+
+There's going to be cases where a given sample doesn't have enough cells to reasonably test. We will pick a threshold for 'minimum cells per pseudobulk sample' based on the distribution of the data. A pool of just 6 cells would be way too small!
+
+
 ```{r}
 DT::datatable(data.frame(colData(se.pdb))[,c('pdb_sample','individual_code','tissue_sample','ncells')])
 ```
 
 
+100 is a decent threshold for this data. We could consider 200, but we would start to loose more of the T-cells, with fewer overall.
 ```{r}
 # What is the minimum accepptable number of cells in a pool?
 min_cells_per_pdbsample <- 100
@@ -55,14 +92,13 @@ se.pdb <- se.pdb[,se.pdb$ncells >= min_cells_per_pdbsample]
 
 ## Differential expression
 
-```{r}
 
+We pull out the counts data, and corresponding psuedobulk annotation.
+```{r}
 # Pull out the pseudoboulk counts matrix for passed samples
 pseudobulk_counts_matrix <- counts(se.pdb)
 # And the corresponding annotations
 pseudobulk_anno_table    <- as_tibble(colData(se.pdb)[,c('pdb_sample','group', 'tissue_sample', 'celltype_subset', 'ncells')]) # + any other experimental factors
-
-
 
 # Build a table of each contrast we might want to do. 
 contrasts_wanted <- bind_cols(
@@ -70,12 +106,10 @@ contrasts_wanted <- bind_cols(
   B= c("HC")  # Second terms (usually control)
 )
 
-
 ```
 
 
-
-
+And can loop through each celltype.
 
 ```{r}
 # Empty list to collect results
@@ -195,9 +229,7 @@ DT::datatable(de_results_sig.celltype)
 
 ## View genes
 
-
-
-This is hard to read (and slow) and doesn't tell you anything about bio replicates.
+We can plot each cell's expression, but most counts are zero. This is hard to read (and slow).
 
 ```{r}
 plotExpression(sfe, "SELENOP", x="group", colour_by = "group",
@@ -207,7 +239,7 @@ plotExpression(sfe, "SELENOP", x="group", colour_by = "group",
 
 
 
-
+The differential expression used counts data, but we can still calculate some normalised expression at the pseudobulk level. 
 ```{r}
 # Get some normalised values, purely for plotting.
 # (can't use logged counts because the sizes are so dramatically different!)
@@ -220,6 +252,7 @@ assay(se.pdb, "logcounts") <- log2(norm_counts)
 ```
 
 
+Here we can see the expression per biological sample.
 
 ```{r}
 plotExpression(se.pdb, "SELENOP", x="group", colour_by = "group",

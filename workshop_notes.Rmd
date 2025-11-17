@@ -1,0 +1,185 @@
+---
+title: "Workshop notes"
+output: html_notebook
+---
+
+## Libraries
+
+```{r}
+library(tidyverse)
+library(Voyager)
+library(alabaster.sfe)
+library(patchwork)
+library(DT)
+```
+
+## Paths
+
+```{r}
+
+#spe_01_loaded_file        <- file.path("data/GSE234713_CosMx_IBD_sfe_mini_01_loaded/")
+#spe_02_banksy_niches_file <- file.path("data/GSE234713_CosMx_IBD_sfe_mini_02_banksy_niches")
+spe_02_banksy_niches_file <- file.path("data/GSE234713_CosMx_IBD_sfe_mini_02_banksy_niches")
+#spe_02_banksy_niches_file <- file.path("data/OLD_GSE234713_CosMx_IBD_sfe_02_banksy_niches/")
+
+spe_pseudobulk_by_celltype_file           <- file.path("data/GSE234713_CosMx_IBD_sfe_mini_pseudobulk_by_celltype.RDS")
+spe_pseudobulk_by_niche_file              <- file.path("data/GSE234713_CosMx_IBD_sfe_mini_pseudobulk_by_niche.RDS")
+spe_pseudobulk_by_celltype_in_niche_file  <- file.path("data/GSE234713_CosMx_IBD_sfe_mini_pseudobulk_by_celltype_in_niche.RDS")
+
+
+
+
+```
+
+
+## Plan
+
+0. Intro + housekeeping
+1. Load and basic look at the data 
+2. DE by celltype
+3. Niches (preprocessed)
+4. DE by niches
+5. DE by niche by region: Are lympoid region plasmas different to epithelial plasmas?
+6. celltype co-occurance (spicyr?)
+
+
+## Load data
+
+```{r}
+sfe <- readObject(spe_02_banksy_niches_file)
+#sfe.sample <- sfe[,sfe$tissue_sample == 'HC_a'] 
+sfe.sample <- sfe[,sfe$tissue_sample == 'HC_b'] # beautiful - has lymphoid regions.
+sfe.sample2 <- sfe[,sfe$tissue_sample == 'HC_a'] 
+```
+
+
+## Explore data 
+
+<blurb>
+
+
+
+Look at the cell level metadata
+```{r}
+DT::datatable(colData(sfe))
+```
+and the gene level metadata
+
+
+
+
+How many samples and cells per sample
+
+```{r}
+table(sfe$Condition, sfe$tissue_sample)
+```
+
+What do the counts look like?
+
+
+### The cell types
+
+
+
+
+
+## Differential Expression 1 : Celltypes
+
+
+
+
+
+
+
+### Niches
+
+```{r}
+#from catscradle
+niche_membership_file     <- file.path("data/CatsCradleNicheMembership.RDS")
+niche_membership_code <- readRDS(niche_membership_file)
+#sfe$niche <- niche_membership_code[as.character(sfe$cell_ID)]
+
+
+colData(sfe)$niche2  <- niche_membership_code[colData(sfe)$cell_ID]
+sfe$niche1           <- niche_membership_code[colData(sfe)$cell_ID]
+
+
+sfe.sample <- sfe[,sfe$tissue_sample == 'HC_b'] 
+
+
+
+
+```
+
+
+
+```{r}
+NBHDByCTMatrixExtended <- readRDS(neighbour_matrix_file )
+
+num_c6_neighbours <- setNames(NBHDByCTMatrixExtended$c6, nm=rownames(NBHDByCTMatrixExtended))
+sfe$niche1           <- niche_membership_code[colData(sfe)$cell_ID]
+```
+
+
+
+```{r}
+plotSpatialFeature(sfe.sample,'cluster_code', colGeometryName = "cellSeg") + # Choose this one
+  theme(legend.title=element_blank()) +
+  ggtitle(sample)
+```
+```{r}
+plotSpatialFeature(sfe.sample, "niche",colGeometryName = "cellSeg") + # Choose this one
+  theme(legend.title=element_blank()) +
+  ggtitle(sample)
+```
+`
+
+
+```{r}
+
+
+## Celltype proportions
+celltype_summary_table<- colData(sfe) %>% as_tibble() %>%
+  group_by(tissue_sample, niche ) %>%
+  summarise(n_cells = n())
+
+ggplot(celltype_summary_table, aes(fill=niche, y=n_cells, x=tissue_sample) )+
+  geom_bar(position="fill", stat="identity") +
+  theme_bw() +
+  coord_flip() +
+  theme(legend.position = "bottom") +
+  scale_y_continuous(expand = c(0,0)) +
+  ggtitle( "Niche composition by sample")
+
+
+```
+
+
+
+
+```{r}
+
+
+## Celltype proportions
+celltype_summary_table<- colData(sfe) %>% as_tibble() %>%
+  group_by(celltype_subset, niche ) %>%
+  summarise(n_cells = n())
+
+ggplot(celltype_summary_table, aes(fill=celltype_subset, y=n_cells, x=niche) )+
+  geom_bar(position="fill", stat="identity") +
+  theme_bw() +
+  coord_flip() +
+  theme(legend.position = "bottom") +
+  scale_y_continuous(expand = c(0,0)) +
+  ggtitle( "Celltype composition")
+
+
+```
+
+
+
+
+
+
+
+
