@@ -1,5 +1,5 @@
 ---
-title: "Celltype co-occurance"
+title: "Celltype Co-ocurance"
 output:
   html_document:
     toc: true

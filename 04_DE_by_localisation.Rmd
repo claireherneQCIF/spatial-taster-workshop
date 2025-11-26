@@ -92,7 +92,7 @@ DT::datatable(data.frame(colData(se.pdb))[,c('pdb_sample','individual_code', 'ni
 
 With the extra level of separation - the pools (and thus total counts) are smaller. 
 
-We only care about plasma cells, and mostly only in n3 and n6 ;  so we can set a threshold accordingly. Here we choose 50 cells.
+We only care about plasma cells, and mostly only in n3 and n6 - so we can set a threshold accordingly. Here we choose 50 cells.
 
 
 ```{r}
@@ -138,7 +138,7 @@ Here we will ignore the condition (HC/CD) entirely, but we will have a paired an
 
 There are plenty of plasma cells within other niches, so we will keep them in our model, even if we're not testing for them directly. 
 
-Note that is only 4 samples for niche 6 - not every sample had lymphoid regions to begin with.
+Note that there are only 4 samples for niche 6 - not every sample had lymphoid regions to begin with.
 
 ```{r}
 # Pull out the pseudobulk counts matrix for passed samples

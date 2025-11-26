@@ -12,7 +12,7 @@ output:
 
 This workshop will use CosMx Spatial Molecular Imager (SMI) data from the paper "Macrophage and neutrophil heterogeneity at single-cell spatial resolution in human inflammatory bowel disease" (Garrido-Trigo et al. 2023) - link: https://www.nature.com/articles/s41467-023-40156-6
 
-There were 9x colon tissue samples, one per slide. They used a 1k RNA panel panel. (5k Xenium, 6k Cosmx and whole transcriptome kits are also out there) 
+There were 9x colon tissue samples, one per slide. They used a 1k RNA panel panel, (5k Xenium, 6k Cosmx and whole transcriptome kits are also out there).
 
 * 3x Healthy controls (HC)
 * 3x Crohn’s disease (CD)
@@ -63,7 +63,7 @@ How many cells per sample?
 table(sfe$tissue_sample)
 ```
 
-This data is subsetted to only 4 'Fields of View' (FOV). On the cosmx platform, these are multiple rectangular regions (fields of view) that make up the run. Essentially we're looking at a corner of each sample.
+This data is subsetted to only 4 'Fields of View' (FOV). On the cosmx platform, these are multiple rectangular regions that make up the run. Essentially we're looking at a corner of each sample.
 
 ```{r}
 #NB: ColData is a DataFrame, not a data.frame, often need an explicit conversion
@@ -84,12 +84,12 @@ We'll be using 5 broad celltypes. These are from Garrido-Trigo et al's original 
 plotUMAP(sfe, colour_by='celltype_subset', scattermore=1)
 ```
 
-Lets check them out on the actual tissue.
+Lets check them out on the actual tissue, one of the healthy control samples.
 
-A note on the tissue morphology: Here the top would be the lumen of the colon, and a stromal layer at the bottom. The oval-shaped epithelial layers are crypts, and that region is called the lamina propria. See: https://www.pathologyoutlines.com/topic/colon histology.html
+A note on the tissue morphology: Here the top would be the lumen of the colon, and a stromal layer at the bottom known as the lamina propria. The oval-shaped epithelial structures are crypts. See: https://www.pathologyoutlines.com/topic/colon histology.html
 
 ```{r}
-plotSpatialFeature(sfe.sample.HC,'celltype_subset', colGeometryName = "cellSeg") + 
+plotSpatialFeature(sfe.sample.HC, 'celltype_subset', colGeometryName = "cellSeg") + 
   theme(legend.title=element_blank()) +
   ggtitle(sample)
 ```

@@ -6,13 +6,6 @@ output:
     df_print: paged
 ---
 
-```{r results='hide', echo=FALSE, warning=FALSE, message=FALSE}
-#Ignore this chunk, it is only to run the setup Rmarkdown when knitting 
-building_htmls <- ! interactive()
-if (building_htmls ) {
-   source(knitr::purl("00_Setup.Rmd", quiet=TRUE))
-}
-```
 
 **What is the difference between Crohns Disease and healthy samples in different regions of the tissue?**
 
@@ -28,7 +21,7 @@ plotSpatialFeature(sfe.sample.HC,'celltype_subset', colGeometryName = "cellSeg")
 
 ## Generate niches
 
-We can use 'Banksy' to define niches. Banksy doesn't use use celltypes at all; It uses 3 pieces of information; each cells gene expression, its surrounding gene expression and a 'azimuthal gabor filter' (AGF) to capture the surrounding gene expression gradient - see Figure 1 https://www.nature.com/articles/s41588-024-01664-3 
+We can use 'Banksy' to define niches. Banksy doesn't use use celltypes at all; It uses three pieces of information; each cell's gene expression, its surrounding gene expression and a 'azimuthal gabor filter' (AGF) to capture the surrounding gene expression gradient - see Figure 1 https://www.nature.com/articles/s41588-024-01664-3 
 
 Again, this takes some time to run. The results are already loaded in the sfe object. 
 

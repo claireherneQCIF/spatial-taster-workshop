@@ -19,11 +19,11 @@ For a more detailed walkthrough of this test, see [spatial sampler differential 
 
 ## Pool samples into pseudobulk
 
-We need to created a cell-level annotation for the pseudobulk grouping in our analysis. We can do this by concatenating the tissue sample ID with the celltype; calling this column pdb_sample here.
+We need to create a cell-level annotation for the pseudobulk grouping in our analysis. We can do this by concatenating the tissue sample ID with the celltype; calling this column pdb_sample here.
 
 Now use the PseudobulkExpression() function to sum up each gene’s gene expression across each pdb_sample.
 
-This will build a SummarisedExperiment object at the ‘sample+celltype’ level’. Which contains one entry per group, containing the sum of copies of the gene in all cells within the grouping.
+This will build a SummarisedExperiment object at the combined sample and celltype level. Which contains one entry per group, containing the sum of copies of the gene in all cells within the grouping.
 
 This can take a while to run - So load one that's already been preprocessed
 
