@@ -14,26 +14,26 @@ We can test for differential expression as though this was a single cell experim
 
 We're going to use a pseudobulk approach; summing up all cells within a group, and treating it more like a bulk RNAseq experiment. 
 
-For a more detailed walkthrough of this test, see [spatial sampler differential expression by celltype HowTo](https://swbioinf.github.io/spatialsnippets/e_DEPseudobulkSampleLevel_insitu_sfe.html)
+For a more detailed walkthrough of this test, see [Spatial Sampler : Differential expression between groups using pseudobulk](https://swbioinf.github.io/spatialsnippets/e_DEPseudobulkSampleLevel_insitu_sfe.html)
 
 
 ## Pool samples into pseudobulk
 
 We need to create a cell-level annotation for the pseudobulk grouping in our analysis. We can do this by concatenating the tissue sample ID with the celltype; calling this column pdb_sample here.
 
-Now use the PseudobulkExpression() function to sum up each gene’s gene expression across each pdb_sample.
+Now use the aggregateAcrossCells() function to sum up each gene’s expression across each pdb_sample.
 
 This will build a SummarisedExperiment object at the combined sample and celltype level. Which contains one entry per group, containing the sum of copies of the gene in all cells within the grouping.
 
-This can take a while to run - So load one that's already been preprocessed
+This can take a while to run - we will load one that's already been preprocessed
 
 NB: We might consider applying an additional filter for number of minimum counts per cell here (particularly since we don't need to maintain spatial information), but this data has already been filtered.
 
 ```{r eval=FALSE}
 ## DO NOT RUN ##
-sfe$pdb_sample <- paste0(sfe$tissue_sample, '_', sfe$celltype_subset)
-se.pdb <- aggregateAcrossCells(sfe, ids=sfe$pdb_sample,
-                               BPPARAM = MulticoreParam(workers=4)  )
+# sfe$pdb_sample <- paste0(sfe$tissue_sample, '_', sfe$celltype_subset)
+# se.pdb <- aggregateAcrossCells(sfe, ids=sfe$pdb_sample,
+#                                BPPARAM = MulticoreParam(workers=4)  )
 ```
 
 Load pseudobulk
@@ -63,7 +63,7 @@ DT::datatable(data.frame(colData(se.pdb))[,c('pdb_sample','individual_code','tis
 ```
 
 
-100 is a decent threshold for this data. We could consider 200, but we would start to loose more of the T-cells, which are rarer overall.
+100 is a decent threshold for this data. We could consider 200, but we would start to lose more of the T-cells, which are rarer overall.
 ```{r}
 # What is the minimum acceptable number of cells in a pool?
 min_cells_per_pdbsample <- 100
@@ -110,7 +110,7 @@ contrasts_wanted <- bind_cols(
 This section of code will test for differential expression, looping through each celltype.
  
 1) Subset the counts and annotation to only that celltype
-2) And then, for each contrast we want to test (Which is only 1)
+2) And then, for each contrast we want to test (which is only 1)
    a. Check if there are enough biological replicates to test (ie. at least 2vs2)
    b. Build a DGE list object with edgeR for testing
    c. Define the design matrix, here simply: ~0 + group
