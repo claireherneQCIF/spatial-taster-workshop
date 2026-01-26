@@ -86,7 +86,7 @@ plotUMAP(sfe, colour_by='celltype_subset', scattermore=1)
 
 Lets check them out on the actual tissue, one of the healthy control samples.
 
-A note on the tissue morphology: Here the top would be the lumen of the colon, and a stromal layer at the bottom known as the lamina propria. The oval-shaped epithelial structures are crypts. See: https://www.pathologyoutlines.com/topic/colon histology.html
+A note on the tissue morphology: Here the top would be the lumen of the colon, and a stromal layer at the bottom known as the lamina propria. The oval-shaped epithelial structures are crypts. See: https://www.pathologyoutlines.com/topic/colonhistology.html
 
 ```{r}
 plotSpatialFeature(sfe.sample.HC, 'celltype_subset', colGeometryName = "cellSeg") + 
