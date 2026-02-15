@@ -1,5 +1,5 @@
 ---
-title: "Celltype Co-ocurance"
+title: "Celltype co-occurrence"
 output:
   html_document:
     toc: true
@@ -7,10 +7,10 @@ output:
 ---
 
 
-**Are myeloid cells migrating closer to the epithelia in crohn's disease?**
+**Are myeloid cells migrating closer to the epithelia in Crohn's disease?**
 
 
-We can use spicyR to test if there is a change in the relative closeness of different celltypes (e.g. myeloid and epithelia) across different condition.
+We can use spicyR to test if there is a change in the relative closeness of different celltypes (e.g. myeloid and epithelia) across different conditions.
 
 See: [spicyR vignette](https://www.bioconductor.org/packages/release/bioc/vignettes/spicyR/inst/doc/spicyR.html#41_Test_for_change_in_localisation_for_a_specific_pair_of_cells)
 
@@ -19,32 +19,32 @@ See: [spicyR vignette](https://www.bioconductor.org/packages/release/bioc/vignet
 # Build the input table for spicyR
 
 
-SpicyR can work with a SFE object, but not in this specific case (It lacks image data, and some coordinates are negative). So instead, we will build a table of the relevant input data.
+SpicyR can work with a `SpatialFeatureExperiment` object, but not in this specific case (it lacks image data, and some coordinates are negative). So instead, we will build a table of the relevant input data.
 
-For every cell, it requires the following
+For every cell, it requires the following:
 
 * Cell type
 * X and Y coordinates
 * Sample ID 
 * Sample condition 
-* FOV (optional)
+* Field of view (FOV) (optional)
 
 
-The centroid coordinates of each cell are available with the spatialCoords function
+The centroid coordinates of each cell are stored in the `spatialCoords` component of the `SpatialFeatureExperiment` object, accessed using the `spatialCoords()` function.
 
 ```{r}
 head(spatialCoords(sfe))
 ```
 
-Everything else we need is stored in the ColData(). We can join those two tables together, and then rename some columns according to what spicyR expects.
+Everything else we need is stored in the `colData` component of the `SpatialFeatureExperiment` object. We can join those two tables together, and then rename some columns according to what spicyR expects.
 
 ```{r}
-#epi => myeloid
+# epi => myeloid
 spicy_cell_info <- as.data.frame(colData(sfe))[,c('cell', 'tissue_sample',  'celltype_subset', 'group', 'fov_name') ]
 spicy_cell_info <- cbind(spicy_cell_info, spatialCoords(sfe))
 spicy_cell_info <- spicy_cell_info %>%
   dplyr::rename(
-    imageID = fov_name, #there are 4 fovs per tissue sample. In xenium data, that would be one per slide. And in other experiments, many samples per image.
+    imageID = fov_name, #there are 4 fovs per tissue sample. In Xenium data, that would be one per slide. And in other experiments, many samples per image.
     x=CenterX_global_px,
     y=CenterY_global_px
   )
@@ -53,7 +53,7 @@ spicy_cell_info$imageID <- droplevels(spicy_cell_info$imageID)
 ```
 
 
-Offset any negative X/Y coordinates to positive. The absolute positions don't matter. 
+If any of the x or y coordinates are negative, offset all x or y values by 1 to ensure all values are positive. Absolute positions of the cells don't matter, just the relative position between cells.
 
 ```{r}
 # remove negative values - not supported by spicyR
@@ -66,12 +66,16 @@ if (min_y < 0) {spicy_cell_info$y = spicy_cell_info$y + -(min_y) + 1 }
 
 ## Test proximity of myeloid cells to epithelia
 
+Call the `spicy()` function to perform tests comparing cell types by condition. 
+
+The `sigma` value is a variable used for scaling when tissue types are inhomogenous. More information on selecting a `sigma` value can be found in the [spicyR vingette](https://bioconductor.org/packages/release/bioc/vignettes/spicyR/inst/doc/spicyR.html#7_Accounting_for_tissue_inhomogeneity) and [spicyWorkflow vignette](https://www.bioconductor.org/packages/release/workflows/vignettes/spicyWorkflow/inst/doc/spicyWorkflow.html#14_spicyR:_Test_spatial_relationships).
+
 ```{r}
 spicy_res <- spicy(
   cells     = spicy_cell_info , 
   subject   = 'tissue_sample',
   cellType  = 'celltype_subset',
-  sigma     = 50, # tissue is not homogeneous see: https://www.bioconductor.org/packages/release/workflows/vignettes/spicyWorkflow/inst/doc/spicyWorkflow.html#14_spicyR:_Test_spatial_relationships
+  sigma     = 50,
   condition = "group",
   from      = "epi",
   to        = "myeloids"
@@ -86,7 +90,7 @@ NB: Garrido-Trigo et al did a detailed exploration of localisation of macrophage
 topPairs(spicy_res)
 ```
 
-We can plot the 'L-function' between these groups per condition. There is an L value for each sample, which represents the 'closeness' of the celltype pair in that sample. Higher values indicates co-location. 
+We can plot the 'L-function' between these groups per condition. There is an L value for each sample, which represents the 'closeness' of the celltype pair in that sample. Higher values indicates co-localisation. 
 
 ```{r}
 spicyBoxPlot(spicy_res, 
@@ -110,7 +114,7 @@ spicy_res <- spicy(
 
 ```
 
-And there is a very nice visualisation. The size of the circle scales with significant, and the colour indicates the magnitude of the 'L' Value. 
+And there is a very nice visualisation. The size of the circle scales with significance, and the colour indicates the magnitude of the 'L' Value. 
 
 ```{r}
 signifPlot(spicy_res)
