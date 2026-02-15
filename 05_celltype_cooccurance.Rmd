@@ -1,5 +1,5 @@
 ---
-title: "Celltype co-occurrence"
+title: "Cell type co-occurrence"
 output:
   html_document:
     toc: true
@@ -10,7 +10,7 @@ output:
 **Are myeloid cells migrating closer to the epithelia in Crohn's disease?**
 
 
-We can use spicyR to test if there is a change in the relative closeness of different celltypes (e.g. myeloid and epithelia) across different conditions.
+We can use spicyR to test if there is a change in the relative closeness of different cell types (e.g. myeloid and epithelia) across different conditions.
 
 See: [spicyR vignette](https://www.bioconductor.org/packages/release/bioc/vignettes/spicyR/inst/doc/spicyR.html#41_Test_for_change_in_localisation_for_a_specific_pair_of_cells)
 
@@ -83,14 +83,14 @@ spicy_res <- spicy(
 ```
 
 
-NB: Garrido-Trigo et al did a detailed exploration of localisation of macrophage and neutrophil subtypes in their data. We are testing a toy subset with some very broad celltypes!
+NB: Garrido-Trigo et al did a detailed exploration of localisation of macrophage and neutrophil subtypes in their data. We are testing a toy subset with some very broad cell types!
 
 
 ```{r}
 topPairs(spicy_res)
 ```
 
-We can plot the 'L-function' between these groups per condition. There is an L value for each sample, which represents the 'closeness' of the celltype pair in that sample. Higher values indicates co-localisation. 
+We can plot the 'L-function' between these groups per condition. There is an L value for each sample, which represents the 'closeness' of the cell type pair in that sample. Higher values indicates co-localisation. 
 
 ```{r}
 spicyBoxPlot(spicy_res, 
@@ -99,10 +99,10 @@ spicyBoxPlot(spicy_res,
 ```
 
 
-## Tests for changes across all celltypes
+## Tests for changes across all cell types
 
 
-If we omit the pair of celltypes - all combinations will be tested.
+If we omit the pair of cell types - all combinations will be tested.
 ```{r}
 spicy_res <- spicy(
   cells     = spicy_cell_info , 
